@@ -1,4 +1,3 @@
-import flask
 import jsonpickle
 from flask import Flask, request, Response, jsonify
 from src.utilities import andy_logger, andy_singleton, constants
@@ -38,59 +37,26 @@ def lq_detection():
         logger.info("This is the first request for organization={}".format(org_id))
         tmp_org_id = org_id
         request_count += 1
-        matches = factes_engine.return_mached_facets(snippet, org_id)
-        if len(matches) != 0:
-            result = []
-            for item in matches:
-                tmp_dict = {"Snippet_id": item.snippet.sid, "Snippet_text": item.snippet_text,
-                            "Snippet_Ques": item.snippet_question, "Facet_Name": item.facet_name,
-                            "Facet_Signal_id": item.facet_signal.fsid, "Face_Signal": item.facet_signal_text,
-                            "Score": str(item.score)}
-                result.append(tmp_dict)
-            resp = Response(jsonpickle.encode(result), mimetype='application/json')
-            resp.headers['Access-Control-Allow-Origin'] = '*'
-            return resp
-        else:
-            return str([])
-
+        resp = Response(jsonpickle.encode(factes_engine.wrapper_method(snippet, org_id)), mimetype='application/json')
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp
     elif request != 0 and tmp_org_id != org_id:
         logger.info(
             "First request for new organization={} clearing the cache_facets for old_org={}".format(org_id, tmp_org_id))
         factes_engine.refresh_cached_lq_facets()
         request_count = 1
         tmp_org_id = org_id
-        matches = factes_engine.return_mached_facets(snippet, org_id)
-        if len(matches) != 0:
-            result = []
-            for item in matches:
-                tmp_dict = {"Snippet_id": item.snippet.sid, "Snippet_text": item.snippet_text,
-                            "Snippet_Ques": item.snippet_question, "Facet_Name": item.facet_name,
-                            "Facet_Signal_id": item.facet_signal.fsid, "Face_Signal": item.facet_signal_text,
-                            "Score": str(item.score)}
-                result.append(tmp_dict)
-            resp = Response(jsonpickle.encode(result), mimetype='application/json')
-            resp.headers['Access-Control-Allow-Origin'] = '*'
-            return resp
-        else:
-            return str([])
+        resp = Response(jsonpickle.encode(factes_engine.wrapper_method(snippet, org_id)), mimetype='application/json')
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp
     else:
         request_count += 1
-        logger.info("This is {} request for {} organization".format(request_count, tmp_org_id))
-        matches = factes_engine.return_mached_facets(snippet, org_id)
-        if len(matches) != 0:
-            result = []
-            for item in matches:
-                tmp_dict = {"Snippet_id": item.snippet.sid, "Snippet_text": item.snippet_text,
-                            "Snippet_Ques": item.snippet_question, "Facet_Name": item.facet_name,
-                            "Facet_Signal_id": item.facet_signal.fsid, "Face_Signal": item.facet_signal_text,
-                            "Score": str(item.score)}
-                result.append(tmp_dict)
-            resp = Response(jsonpickle.encode(result), mimetype='application/json')
-            resp.headers['Access-Control-Allow-Origin'] = '*'
-            return resp
-        else:
-            return str([])
+        logger.info("This is {} request for  organization={}".format(request_count, tmp_org_id))
+        resp = Response(jsonpickle.encode(factes_engine.wrapper_method(snippet, org_id)), mimetype='application/json')
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp
 
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port="7777", debug=True)
+

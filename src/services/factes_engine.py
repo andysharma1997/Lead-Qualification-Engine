@@ -4,7 +4,6 @@ import os
 from src.utilities.objects import Facet, FacetSignal, CaughtFacetSignals, VadChunk
 import numpy as np
 import time
-from src.services import question_detection
 from src.services import snippet_service
 from src.utilities.andy_exceptions import NoFacetFound
 
@@ -93,7 +92,7 @@ def make_cached_lq_facets(org_id):
         logger.info("Skipping caching of keyword for organization={}, they already exist in RAM".format(org_id))
 
 
-def return_mached_facets(snippets, org_id):
+def wrapper_method(snippets, org_id):
     try:
         make_cached_lq_facets(org_id)
         vad_chunk_list = []
@@ -126,15 +125,40 @@ def return_mached_facets(snippets, org_id):
                                     CaughtFacetSignals(vad_chunk, vad_chunk.text, question, facet, facet_signal,
                                                        facet_signal.text, score,
                                                        constants.fetch_constant("embedding_method")))
+        return make_result(caught_facets)
 
-        return caught_facets
     except NoFacetFound as e:
         logger.error(e.message)
         pass
     return []
 
 
-if __name__ == "__main__":
-    # make_cached_lq_facets("1")
-    x = question_detection.find_questions("hello how are you doing?     how is the day")
-    print(x)
+def make_result(caught_facets):
+    if len(caught_facets) != 0:
+        result = []
+        a_id = []
+        b_id = []
+        i_id = []
+        n_id = []
+        for item in caught_facets:
+            tmp_dict = {"Snippet_id": item.snippet.sid, "Snippet_text": item.snippet_text,
+                        "Snippet_Ques": item.snippet_question, "Facet_Name": item.facet_name,
+                        "Facet_Signal_id": item.facet_signal.fsid, "Face_Signal_text": item.facet_signal_text,
+                        "Score": str(item.score)}
+            result.append(tmp_dict)
+            if item.facet_name.lower() == "authority":
+                a_id.append(item.facet_signal.fsid)
+            elif item.facet_name.lower() == "interest":
+                i_id.append(item.facet_signal.fsid)
+            elif item.facet_name.lower() == "budget":
+                b_id.append(item.facet_signal.fsid)
+            else:
+                n_id.append(item.facet_signal.fsid)
+        count_dict = [{"Facet": "authority", "count": len(set(a_id)), "facetsignal_id": set(a_id)},
+                      {"Facet": "interest", "count": len(set(i_id)), "facetsignal_id": set(i_id)},
+                      {"Facet": "budget", "count": len(set(b_id)), "facetsignal_id": set(b_id)},
+                      {"Facet": "need_investigation", "count": len(set(n_id)), "facetsignal_id": set(n_id)}]
+        return result, count_dict
+    else:
+        return []
+
