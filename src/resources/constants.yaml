@@ -1,0 +1,6 @@
+default_organization: 149
+facet_folder_path: src/resources/factes_by_org
+facet_file_start_name: facets
+facet_names: ["authority","interest","budget","need_investigation"]
+embedding_method: Laser
+threshold: 0.7
