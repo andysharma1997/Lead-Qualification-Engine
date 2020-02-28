@@ -14,4 +14,9 @@ This repo is used to detect lead qualification questions
   ```
   python -m laserembeddings download-models
   ```
-  4. 
+  4. Run main.py 
+  ```
+  python main.py
+  ```
+  
+ Note:- There is a postman dump attached along with the repo that can be used
