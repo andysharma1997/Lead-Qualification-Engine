@@ -1,0 +1,53 @@
+{
+	"info": {
+		"_postman_id": "ba106bed-bcae-401b-a518-40f24c58603e",
+		"name": "Lead_qualification_Engine",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "localhost:7777/lq_detection?org_id=1",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "[\n    {\n    \t\"id\": 1,\n        \"text\": \"is this andy?is this andy's father? \",\n        \"speaker\":\"Agent\",\n        \"from_time\": \"1000\",\n        \"to_time\":\"10000\"\n    },\n    {\n        \"id\": 2,\n        \"text\": \"what is your budget\",\n        \"speaker\":\"Agent\",\n        \"from_time\": \"1000\",\n        \"to_time\":\"10000\"\n    },\n    {\n    \t\"id\": 3,\n        \"text\": \"are you interested in the product?teri maa ki jai.Would you like to buy our product sir?what is the price that you are looking at \",\n        \"speaker\":\"Agent\",\n        \"from_time\": \"1000\",\n        \"to_time\":\"10000\"\n    },\n     {\n    \t\"id\": 4,\n        \"text\": \"how much did your daughter score in class 12 \",\n        \"speaker\":\"Agent\",\n        \"from_time\": \"1000\",\n        \"to_time\":\"10000\"\n    }\n]",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:7777/lq_detection?org_id=1",
+					"host": [
+						"localhost"
+					],
+					"port": "7777",
+					"path": [
+						"lq_detection"
+					],
+					"query": [
+						{
+							"key": "org_id",
+							"value": "1"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"protocolProfileBehavior": {}
+}
