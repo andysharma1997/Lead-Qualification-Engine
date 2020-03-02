@@ -93,44 +93,49 @@ def make_cached_lq_facets(org_id):
 
 
 def wrapper_method(snippets, org_id):
-    try:
-        make_cached_lq_facets(org_id)
-        vad_chunk_list = []
-        for item in snippets:
-            vad_chunk_list.append(
-                VadChunk(item["id"], item["from_time"], item["to_time"], item["speaker"], item["text"], None,
-                         questions=None, q_encoding=None,
-                         encoding_method=None))
-        valid_vad_chunk_list = []
-        for vad_chunk in vad_chunk_list:
-            if snippet_service.check_snippet_speaker(vad_chunk):
-                logger.info("Speaker = Agent for snippet_id={}".format(vad_chunk.sid))
-                snippet_service.find_snippet_questions(vad_chunk)
-                snippet_service.make_snippet_question_embeddings(vad_chunk)
-                valid_vad_chunk_list.append(vad_chunk)
-            else:
-                logger.info("Speaker = Customer for snippet_id ={}".format(vad_chunk.sid))
-        caught_facets = []
-        for vad_chunk in valid_vad_chunk_list:
-            if vad_chunk.q_encoding is not None:
-                for i, question in enumerate(vad_chunk.questions):
-                    for facet in andy_singleton.Singletons.get_instance().get_cached_lq_facets():
-                        for facet_signal in andy_singleton.Singletons.get_instance().get_cached_lq_facets()[
-                            facet].facet_signals:
-                            score = (np.dot([vad_chunk.q_encoding[i]], np.array(facet_signal.embedding).T) / (
-                                    np.linalg.norm([vad_chunk.q_encoding[i]]) * np.linalg.norm(
-                                facet_signal.embedding)))[0][0]
-                            if score >= constants.fetch_constant("threshold"):
-                                caught_facets.append(
-                                    CaughtFacetSignals(vad_chunk, vad_chunk.text, question, facet, facet_signal,
-                                                       facet_signal.text, score,
-                                                       constants.fetch_constant("embedding_method")))
-        return make_result(caught_facets)
+    if len(snippets) != 0:
+        try:
+            make_cached_lq_facets(org_id)
+            vad_chunk_list = []
+            for item in snippets:
+                vad_chunk_list.append(
+                    VadChunk(item["id"], item["from_time"], item["to_time"], item["speaker"], item["text"], None,
+                             questions=None, q_encoding=None,
+                             encoding_method=None))
+            valid_vad_chunk_list = []
+            for vad_chunk in vad_chunk_list:
+                if snippet_service.check_snippet_speaker(vad_chunk):
+                    logger.info("Speaker = Agent for snippet_id={}".format(vad_chunk.sid))
+                    snippet_service.find_snippet_questions(vad_chunk)
+                    snippet_service.make_snippet_question_embeddings(vad_chunk)
+                    valid_vad_chunk_list.append(vad_chunk)
+                else:
+                    logger.info("Speaker = Customer for snippet_id ={}".format(vad_chunk.sid))
+            caught_facets = []
+            for vad_chunk in valid_vad_chunk_list:
+                if vad_chunk.q_encoding is not None:
+                    for i, question in enumerate(vad_chunk.questions):
+                        for facet in andy_singleton.Singletons.get_instance().get_cached_lq_facets():
+                            for facet_signal in andy_singleton.Singletons.get_instance().get_cached_lq_facets()[
+                                facet].facet_signals:
+                                score = (np.dot([vad_chunk.q_encoding[i]], np.array(facet_signal.embedding).T) / (
+                                        np.linalg.norm([vad_chunk.q_encoding[i]]) * np.linalg.norm(
+                                    facet_signal.embedding)))[0][0]
+                                if score >= constants.fetch_constant("threshold"):
+                                    caught_facets.append(
+                                        CaughtFacetSignals(vad_chunk, vad_chunk.text, question, facet, facet_signal,
+                                                           facet_signal.text, score,
+                                                           constants.fetch_constant("embedding_method")))
+            fine_tuning(valid_vad_chunk_list, caught_facets)
+            return make_result(caught_facets)
 
-    except NoFacetFound as e:
-        logger.error(e.message)
-        pass
-    return []
+        except NoFacetFound as e:
+            logger.error(e.message)
+            pass
+        return []
+    else:
+        logger.info("No snippets were present in the request ")
+        return []
 
 
 def make_result(caught_facets):
@@ -162,3 +167,31 @@ def make_result(caught_facets):
     else:
         return []
 
+
+def decision_maker():
+    print("hello")
+    # Todo
+
+
+def fine_tuning(vad_chunks, caught_facets):
+    file_path = os.path.abspath(constants.fetch_constant("loop_back_path"))
+    all_questions = []
+    for vad_chunk in vad_chunks:
+        all_questions.extend(question for question in vad_chunk.questions)
+    caught_questions = [facet.snippet_question for facet in caught_facets]
+    if len(caught_questions) != 0 and len(all_questions) != 0:
+        uncaught_questions = []
+        for question in all_questions:
+            if question not in caught_questions:
+                uncaught_questions.append(question)
+        uncaught_questions = list(set(uncaught_questions))
+        if len(uncaught_questions) != 0:
+            logger.info("Found {} uncaught questions writing to file {}".format(len(uncaught_questions), file_path))
+            df = pd.DataFrame.from_dict({"Uncaught Questions": uncaught_questions})
+            df.to_csv(file_path, mode="a", header=False, encoding="utf-8", index=None, sep="\t")
+        else:
+            logger.info("Did not find any uncaught questions")
+    if len(caught_questions) == 0 and len(all_questions) != 0:
+        logger.info("Found {} uncaught questions writing to file {}".format(len(all_questions), file_path))
+        df = pd.DataFrame.from_dict({"Uncaught Questions": all_questions})
+        df.to_csv(file_path, mode="a", header=False, encoding="utf-8", index=None, sep="\t")

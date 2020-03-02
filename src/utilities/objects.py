@@ -37,8 +37,7 @@ class FacetSignal(object):
         self.embedding = embedding
         self.embedding_method = embedding_method
 
-    def set_questions(self, questions):
-        self.questions = questions
+    
 
 
 class Facet(object):

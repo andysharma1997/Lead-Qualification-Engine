@@ -1,5 +1,6 @@
 default_organization: 1
 facet_folder_path: src/resources/factes_by_org
+loop_back_path: src/resources/loopback/loop_back.xlsx
 facet_file_start_name: facets
 facet_names: ["authority","interest","budget","need_investigation"]
 embedding_method: Laser
