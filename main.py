@@ -1,7 +1,12 @@
 import jsonpickle
 from flask import Flask, request, Response
+
+from src.services.snippet_service import make_cache_vad_chunk
 from src.utilities import andy_logger, andy_singleton, constants
 from src.services import factes_engine
+
+from src.services import snippet_service
+from src.utilities.objects import VadChunk
 
 logger = andy_logger.get_logger("main")
 
@@ -56,6 +61,18 @@ def lq_detection():
         resp.headers['Access-Control-Allow-Origin'] = '*'
         return resp
 
+@app.route("/test", methods=["POST", "GET"])
+def snippet_caching():
+    snippets = request.json
+    vad_chunk_list = []
+    for item in snippets:
+        vad_chunk_list.append(
+            VadChunk(item["id"], item["from_time"], item["to_time"], item["speaker"], item["text"], None,
+                     questions=None, q_encoding=None,
+                     encoding_method=None))
+    for vad_chunk in vad_chunk_list:
+        make_cache_vad_chunk(vad_chunk)
 
+    return "hello"
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port="7777", debug=True)

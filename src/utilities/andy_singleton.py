@@ -6,7 +6,7 @@ logger = andy_logger.get_logger("andy_singleton")
 
 class Singletons:
     __instance = None
-    laser_embedder = cached_lq_facets = None
+    laser_embedder = cached_lq_facets = cached_snippets = None
 
     @staticmethod
     def get_instance():
@@ -24,6 +24,7 @@ class Singletons:
             logger.info("Initializing laser embedder")
             self.laser_embedder = Laser()
             self.cached_lq_facets = {}
+            self.cached_snippets = []
             Singletons.__instance = self
 
     def perform_laser_embedding(self, all_sentences):
@@ -44,4 +45,8 @@ class Singletons:
         """
         return self.cached_lq_facets
 
+    def get_cached_snippets(self):
+        return self.cached_snippets
 
+    def set_cached_snippet(self, vad_chunk):
+        self.cached_snippets.append(vad_chunk)

@@ -37,8 +37,6 @@ class FacetSignal(object):
         self.embedding = embedding
         self.embedding_method = embedding_method
 
-    
-
 
 class Facet(object):
     """ This class represents the facets that are defined for lead qualification, the facets have names(
