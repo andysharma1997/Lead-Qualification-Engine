@@ -10,7 +10,6 @@ def check_snippet_speaker(vad_chunk):
     :param vad_chunk:
     :return: true if speaker is agent else false
     """
-    logger.info("Checking speaker")
     return True if vad_chunk.speaker == "Agent" else False
 
 
